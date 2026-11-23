@@ -5,7 +5,7 @@ USE SistemaDoacoes;
 
 
 CREATE TABLE Doador (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Email VARCHAR(100),
     Cidade VARCHAR(100),
@@ -16,7 +16,7 @@ CREATE TABLE Doador (
 
 
 CREATE TABLE Necessitado (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Email VARCHAR(100),
     Cidade VARCHAR(100),
@@ -28,7 +28,7 @@ CREATE TABLE Necessitado (
 
 
 CREATE TABLE InstituicaoDoacao (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     CNPJ VARCHAR(20),
     Email VARCHAR(100),
@@ -40,9 +40,13 @@ CREATE TABLE InstituicaoDoacao (
 
 
 CREATE TABLE Item (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Quantidade INT,
     Tipo INT,
-    Disponivel BIT
+    Disponivel BOOLEAN DEFAULT TRUE,
+    DoadorId INT NULL,
+    NecessitadoId INT NULL,
+    FOREIGN KEY (DoadorId) REFERENCES Doador(Id),
+    FOREIGN KEY (NecessitadoId) REFERENCES Necessitado(Id)
 );
