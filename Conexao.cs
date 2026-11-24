@@ -1,13 +1,12 @@
-
-using Microsoft.Data.SqlClient;
+using MySql.Data.MySqlClient;
 
 public class Conexao
 {
     private readonly string connectionString =
-        "Server=localhost;Database=SistemaDoacoes;Trusted_Connection=True;TrustServerCertificate=True;";
+        "Server=localhost;Database=SistemaDoacoes;Uid=root;Pwd=Senac2026;";
 
-    public SqlConnection Conectar()
+    public MySqlConnection Conectar()
     {
-        return new SqlConnection(connectionString);
+        return new MySqlConnection(connectionString);
     }
 }

@@ -1,4 +1,4 @@
-
+using MySql.Data.MySqlClient;
 using System;
 
 public enum TipoItem
@@ -56,9 +56,42 @@ public class Item
 
         Item novoItem = new Item(nome, quantidade, tipoItemEnum);
 
-        Console.WriteLine("Item cadastrado com sucesso!");
-
         return novoItem;
+    }
+
+    public bool Salvar(int? doadorId, int? necessitadoId)
+    {
+        if ((doadorId == null) == (necessitadoId == null))
+        {
+            Console.WriteLine("Informe apenas o doador OU o necessitado.");
+            return false;
+        }
+
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = @"INSERT INTO Item (Nome, Quantidade, Tipo, DoadorId, NecessitadoId)
+                        VALUES (@nome, @quantidade, @tipo, @doadorId, @necessitadoId)";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@nome", Nome);
+            cmd.Parameters.AddWithValue("@quantidade", Quantidade);
+            cmd.Parameters.AddWithValue("@tipo", (int)Tipo);
+            cmd.Parameters.AddWithValue("@doadorId", (object?)doadorId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@necessitadoId", (object?)necessitadoId ?? DBNull.Value);
+            cmd.ExecuteNonQuery();
+
+            Id = (int)cmd.LastInsertedId;
+            Console.WriteLine("Item salvo com sucesso!");
+            return true;
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao salvar no banco: {ex.Message}");
+            return false;
+        }
     }
     public void ExibirItem()
     {
