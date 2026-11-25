@@ -50,3 +50,4 @@ CREATE TABLE Item (
     FOREIGN KEY (DoadorId) REFERENCES Doador(Id),
     FOREIGN KEY (NecessitadoId) REFERENCES Necessitado(Id)
 );
+    
