@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using MySql.Data.MySqlClient;
 
 public class Doador
 {
@@ -30,6 +31,68 @@ public class Doador
         Telefone = telefone;
 
         Itens = new List<Item>();
+    }
+
+    public static Doador? CadastrarDoador()
+    {
+        Console.Write("Digite o nome do doador: ");
+        string? nome = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            Console.WriteLine("Nome do doador não pode ser vazio.");
+            return null;
+        }
+
+        Console.Write("Digite o email do doador: ");
+        string? email = Console.ReadLine();
+
+        Console.Write("Digite a cidade do doador: ");
+        string? cidade = Console.ReadLine();
+
+        Console.Write("Digite o bairro do doador: ");
+        string? bairro = Console.ReadLine();
+
+        Console.Write("Digite a nacionalidade do doador: ");
+        string? nacionalidade = Console.ReadLine();
+
+        Console.Write("Digite o telefone do doador: ");
+        string? telefone = Console.ReadLine();
+
+        Doador novoDoador = new Doador(nome, email, cidade, bairro, nacionalidade, telefone);
+
+        return novoDoador;
+    }
+
+    public bool Salvar()
+    {
+        try
+        {
+            using (var conexao = new Conexao().Conectar())
+            {
+                conexao.Open();
+                string query = "INSERT INTO Doador (nome, email, cidade, bairro, nacionalidade, telefone) VALUES (@Nome, @Email, @Cidade, @Bairro, @Nacionalidade, @Telefone)";
+                using (var comando = new MySqlCommand(query, conexao))
+                {
+                    comando.Parameters.AddWithValue("@Nome", Nome);
+                    comando.Parameters.AddWithValue("@Email", Email);
+                    comando.Parameters.AddWithValue("@Cidade", Cidade);
+                    comando.Parameters.AddWithValue("@Bairro", Bairro);
+                    comando.Parameters.AddWithValue("@Nacionalidade", Nacionalidade);
+                    comando.Parameters.AddWithValue("@Telefone", Telefone);
+                    comando.ExecuteNonQuery();
+
+                    Id = (int)comando.LastInsertedId;
+                    Console.WriteLine($"Doador salvo com sucesso! ID do doador: {Id}");
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao salvar o doador: {ex.Message}");
+            return false;
+        }
     }
 
     public void ExibirCadastro()

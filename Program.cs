@@ -19,5 +19,7 @@ class Program
             Console.WriteLine("Erro ao conectar:");
             Console.WriteLine(erro.Message);
         }
+
+        Menus.MenuPrincipal();
     }
 }

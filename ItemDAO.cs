@@ -15,6 +15,8 @@ public class Item
     public int Quantidade { get; set; }
     public TipoItem Tipo { get; set; }
     public bool Disponivel => Quantidade > 0;
+    public int? DoadorId { get; set; }
+    public int? NecessitadoId { get; set; }
 
     public Item(string? nome, int quantidade, TipoItem tipo)
     {
@@ -59,9 +61,9 @@ public class Item
         return novoItem;
     }
 
-    public bool Salvar(int? doadorId, int? necessitadoId)
+    public bool Salvar()
     {
-        if ((doadorId == null) == (necessitadoId == null))
+        if ((DoadorId == null) == (NecessitadoId == null))
         {
             Console.WriteLine("Informe apenas o doador OU o necessitado.");
             return false;
@@ -79,8 +81,8 @@ public class Item
             cmd.Parameters.AddWithValue("@nome", Nome);
             cmd.Parameters.AddWithValue("@quantidade", Quantidade);
             cmd.Parameters.AddWithValue("@tipo", (int)Tipo);
-            cmd.Parameters.AddWithValue("@doadorId", (object?)doadorId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@necessitadoId", (object?)necessitadoId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@doadorId", (object?)DoadorId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@necessitadoId", (object?)NecessitadoId ?? DBNull.Value);
             cmd.ExecuteNonQuery();
 
             Id = (int)cmd.LastInsertedId;
@@ -94,10 +96,50 @@ public class Item
         }
     }
     public void ExibirItem()
-    {
+    {   
+        Console.WriteLine($"ID: {Id}");
         Console.WriteLine($"Nome: {Nome}");
         Console.WriteLine($"Quantidade: {Quantidade}");
         Console.WriteLine($"Tipo: {Tipo}");
         Console.WriteLine($"Disponível: {(Disponivel ? "Sim" : "Não")}");
+    }
+
+    public static void ListarItens()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = "SELECT * FROM Item";
+            using var cmd = new MySqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("Nenhum item encontrado.");
+                return;
+            }
+
+            while (reader.Read())
+            {
+                int id = reader.GetInt32("Id");
+                string nome = reader.GetString("Nome");
+                int quantidade = reader.GetInt32("Quantidade");
+                TipoItem tipo = (TipoItem)reader.GetInt32("Tipo");
+
+                Item item = new Item(nome, quantidade, tipo) { Id = id };
+                item.ExibirItem();
+                Console.WriteLine("====================================================");
+                Console.WriteLine("Pressione qualquer tecla para continuar...");
+                Console.ReadKey();
+            }
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao listar itens: {ex.Message}");
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
     }
 }
