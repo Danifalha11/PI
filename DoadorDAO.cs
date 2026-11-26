@@ -239,6 +239,11 @@ public class Doador
                 return false;
             }
         }
+        catch (MySqlException ex) when (ex.Number == 1451)
+        {
+            Console.WriteLine($"Erro ao deletar o doador: este doador ainda tem itens cadastrados. Por favor, remova os itens antes de deletar o doador.");
+            return false;
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao deletar o doador: {ex.Message}");
@@ -261,6 +266,7 @@ public class Doador
             return null;
         }
 
+        Console.WriteLine("Digite os novos valores para os campos (deixe em branco para manter o valor atual):");
         doador.Nome = LerCampo("Nome", doador.Nome);
         doador.Email = LerCampo("Email", doador.Email);
         doador.Cidade = LerCampo("Cidade", doador.Cidade);
@@ -268,12 +274,7 @@ public class Doador
         doador.Nacionalidade = LerCampo("Nacionalidade", doador.Nacionalidade);
         doador.Telefone = LerCampo("Telefone", doador.Telefone);
 
-        if (doador.Atualizar())
-        {
-            Console.WriteLine("Doador atualizado com sucesso!");
-            Console.WriteLine("Pressione qualquer tecla para continuar...");
-            Console.ReadKey();
-        }
+        doador.Atualizar();
         return doador;
     }
 
@@ -292,6 +293,7 @@ public class Doador
             return null;
         }
 
+        doador.ExibirDoadores();
         Console.Write("Tem certeza que deseja excluir? (S/N): ");
         string? resposta = Console.ReadLine();
 
@@ -301,12 +303,7 @@ public class Doador
             return null;
         }
 
-        if (doador.Deletar())
-        {
-            Console.WriteLine("Doador deletado com sucesso!");
-            Console.WriteLine("Pressione qualquer tecla para continuar...");
-            Console.ReadKey();
-        }
+        doador.Deletar();
         return doador;
     }
 }

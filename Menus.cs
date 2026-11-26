@@ -84,12 +84,10 @@ public class Menus
                         Doador.ListarDoadores();
                         break;
                     case 3:
-                        Doador? doadorParaAtualizar = Doador.AtualizarDoador();
-                        doadorParaAtualizar?.Atualizar();
+                        Doador.AtualizarDoador();
                         break;
                     case 4:
-                        Doador? doadorParaDeletar = Doador.DeletarDoador();
-                        doadorParaDeletar?.Deletar();
+                        Doador.DeletarDoador();
                         break;
                     case 5:
                         Console.WriteLine("Voltando ao Menu Principal...");
