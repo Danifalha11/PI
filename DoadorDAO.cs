@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Cms;
 
 public class Doador
 {
@@ -130,9 +131,9 @@ public class Doador
                 Doador doador = new Doador(nome, email, cidade, bairro, nacionalidade, telefone) { Id = id };
                 doador.ExibirDoadores();
                 Console.WriteLine("====================================================");
-                Console.WriteLine("Pressione qualquer tecla para continuar...");
-                Console.ReadKey();
             }
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
         }
         catch (MySqlException ex)
         {
@@ -142,25 +143,170 @@ public class Doador
         }
     }
     
-    public void AtualizarCadastro(
-        string? nome,
-        string? email,
-        string? nacionalidade,
-        string? telefone)
+    public static Doador? BuscarDoadorPorId(int id)
     {
-        Nome = nome;
-        Email = email;
-        Nacionalidade = nacionalidade;
-        Telefone = telefone;
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string query = "SELECT * FROM Doador WHERE Id = @Id";
+            using var comando = new MySqlCommand(query, conn);
+            comando.Parameters.AddWithValue("@Id", id);
+
+            using var reader = comando.ExecuteReader();
+            if (reader.Read())
+            {
+                string? nome = reader["Nome"] as string;
+                string? email = reader["Email"] as string;
+                string? cidade = reader["Cidade"] as string;
+                string? bairro = reader["Bairro"] as string;
+                string? nacionalidade = reader["Nacionalidade"] as string;
+                string? telefone = reader["Telefone"] as string;
+
+                return new Doador(nome, email, cidade, bairro, nacionalidade, telefone) { Id = id };
+            }
+            else
+            {
+                Console.WriteLine($"Nenhum doador encontrado com o ID {id}.");
+                return null;
+            }
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao buscar doador: {ex.Message}");
+            return null;
+        }
     }
 
-    public void DeletarCadastro()
+    public static string? LerCampo(string rotulo, string? valorAtual)
     {
-        Nome = null;
-        Email = null;
-        Cidade = null;
-        Bairro = null;
-        Nacionalidade = null;
-        Telefone = null;
+        Console.Write($"{rotulo} (atual: {valorAtual ?? "vazio"}): ");
+        string? novoValor = Console.ReadLine();
+        return string.IsNullOrWhiteSpace(novoValor) ? valorAtual : novoValor;
+    }
+
+    public bool Atualizar()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string query = "UPDATE Doador SET Nome = @Nome, Email = @Email, Cidade = @Cidade, Bairro = @Bairro, Nacionalidade = @Nacionalidade, Telefone = @Telefone WHERE Id = @Id";
+
+            using var comando = new MySqlCommand(query, conn);
+            comando.Parameters.AddWithValue("@Nome", Nome);
+            comando.Parameters.AddWithValue("@Email", (object?)Email ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@Cidade", (object?)Cidade ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@Bairro", (object?)Bairro ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@Nacionalidade", (object?)Nacionalidade ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
+            comando.Parameters.AddWithValue("@Id", Id);
+
+            comando.ExecuteNonQuery();
+
+            Console.WriteLine("Doador atualizado com sucesso!");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao atualizar o doador: {ex.Message}");
+            return false;
+        }
+    }
+
+    public bool Deletar()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string query = "DELETE FROM Doador WHERE Id = @Id";
+            using var comando = new MySqlCommand(query, conn);
+            comando.Parameters.AddWithValue("@Id", Id);
+
+            int linhasAfetadas = comando.ExecuteNonQuery();
+            if (linhasAfetadas > 0)
+            {
+                Console.WriteLine("Doador deletado com sucesso!");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Nenhum doador encontrado para deletar.");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao deletar o doador: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static Doador? AtualizarDoador()
+    {
+        Console.Write("Digite o ID do doador que deseja atualizar: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("ID inválido.");
+            return null;
+        }
+
+        Doador? doador = BuscarDoadorPorId(id);
+        if (doador == null)
+        {
+            return null;
+        }
+
+        doador.Nome = LerCampo("Nome", doador.Nome);
+        doador.Email = LerCampo("Email", doador.Email);
+        doador.Cidade = LerCampo("Cidade", doador.Cidade);
+        doador.Bairro = LerCampo("Bairro", doador.Bairro);
+        doador.Nacionalidade = LerCampo("Nacionalidade", doador.Nacionalidade);
+        doador.Telefone = LerCampo("Telefone", doador.Telefone);
+
+        if (doador.Atualizar())
+        {
+            Console.WriteLine("Doador atualizado com sucesso!");
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
+        return doador;
+    }
+
+    public static Doador? DeletarDoador()
+    {
+        Console.Write("Digite o ID do doador que deseja deletar: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("ID inválido.");
+            return null;
+        }
+
+        Doador? doador = BuscarDoadorPorId(id);
+        if (doador == null)
+        {
+            return null;
+        }
+
+        Console.Write("Tem certeza que deseja excluir? (S/N): ");
+        string? resposta = Console.ReadLine();
+
+        if (resposta?.Trim().ToUpper() != "S")
+        {
+            Console.WriteLine("Exclusão cancelada.");
+            return null;
+        }
+
+        if (doador.Deletar())
+        {
+            Console.WriteLine("Doador deletado com sucesso!");
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
+        return doador;
     }
 }

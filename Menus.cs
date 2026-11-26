@@ -18,6 +18,7 @@ public class Menus
             Console.WriteLine("4. Sair");
             Console.WriteLine("===================================================");
             Console.Write("Escolha uma opção: ");
+            Console.WriteLine("===================================================");
 
             if (int.TryParse(Console.ReadLine(), out opcaoPrincipal))
             {
@@ -57,16 +58,19 @@ public class Menus
     public static void MenuDoadores()
     {
         int opcaoDoadores = 0;
-        while (opcaoDoadores != 3)
+        while (opcaoDoadores != 5)
         {
             Console.Clear();
             Console.WriteLine("===================================================");
             Console.WriteLine("Menu de Doadores");
             Console.WriteLine("1. Cadastrar Doador");
             Console.WriteLine("2. Listar Doadores");
-            Console.WriteLine("3. Voltar ao Menu Principal");
+            Console.WriteLine("3. Atualizar Doador");
+            Console.WriteLine("4. Deletar Doador");
+            Console.WriteLine("5. Voltar ao Menu Principal");
             Console.WriteLine("===================================================");
             Console.Write("Escolha uma opção: ");
+            Console.WriteLine("===================================================");
 
             if (int.TryParse(Console.ReadLine(), out opcaoDoadores))
             {
@@ -80,6 +84,14 @@ public class Menus
                         Doador.ListarDoadores();
                         break;
                     case 3:
+                        Doador? doadorParaAtualizar = Doador.AtualizarDoador();
+                        doadorParaAtualizar?.Atualizar();
+                        break;
+                    case 4:
+                        Doador? doadorParaDeletar = Doador.DeletarDoador();
+                        doadorParaDeletar?.Deletar();
+                        break;
+                    case 5:
                         Console.WriteLine("Voltando ao Menu Principal...");
                         Thread.Sleep(2000);
                         break;
@@ -91,13 +103,10 @@ public class Menus
             else
             {
                 Console.WriteLine("Entrada inválida. Selecione uma das opções acima.");
+                Thread.Sleep(1000);
             }
 
-            if (opcaoDoadores != 3)
-            {
-                Console.WriteLine("Pressione qualquer tecla para continuar...");
-                Console.ReadKey();
-            }
+
         }
     }
 
@@ -119,6 +128,7 @@ public class Menus
             Console.WriteLine("3. Voltar ao Menu Principal");
             Console.WriteLine("===================================================");
             Console.Write("Escolha uma opção: ");
+            Console.WriteLine("===================================================");
 
             if (int.TryParse(Console.ReadLine(), out opcaoItens))
             {
