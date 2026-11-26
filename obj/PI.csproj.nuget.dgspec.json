@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\caio61412366\\Documents\\GitHub\\PI\\PI.csproj": {}
+    "C:\\Users\\daniel61566846\\Documents\\GitHub\\PI\\PI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\caio61412366\\Documents\\GitHub\\PI\\PI.csproj": {
+    "C:\\Users\\daniel61566846\\Documents\\GitHub\\PI\\PI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\caio61412366\\Documents\\GitHub\\PI\\PI.csproj",
+        "projectUniqueName": "C:\\Users\\daniel61566846\\Documents\\GitHub\\PI\\PI.csproj",
         "projectName": "PI",
-        "projectPath": "C:\\Users\\caio61412366\\Documents\\GitHub\\PI\\PI.csproj",
-        "packagesPath": "C:\\Users\\caio61412366\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\caio61412366\\Documents\\GitHub\\PI\\obj\\",
+        "projectPath": "C:\\Users\\daniel61566846\\Documents\\GitHub\\PI\\PI.csproj",
+        "packagesPath": "C:\\Users\\daniel61566846\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\daniel61566846\\Documents\\GitHub\\PI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\caio61412366\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\daniel61566846\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -71,7 +71,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.403/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

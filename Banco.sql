@@ -1,10 +1,10 @@
 
-CREATE DATABASE SistemaDoacoes;
+CREATE DATABASE IF NOT EXISTSSistemaDoacoes;
 
 USE SistemaDoacoes;
 
 
-CREATE TABLE Doador (
+CREATE TABLE IF NOT EXISTS Doador (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Email VARCHAR(100),
@@ -15,7 +15,7 @@ CREATE TABLE Doador (
 );
 
 
-CREATE TABLE Necessitado (
+CREATE TABLE IF NOT EXISTS Necessitado (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Email VARCHAR(100),
@@ -27,7 +27,7 @@ CREATE TABLE Necessitado (
 );
 
 
-CREATE TABLE InstituicaoDoacao (
+CREATE TABLE IF NOT EXISTS InstituicaoDoacao (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     CNPJ VARCHAR(20),
@@ -39,7 +39,7 @@ CREATE TABLE InstituicaoDoacao (
 );
 
 
-CREATE TABLE Item (
+CREATE TABLE IF NOT EXISTS Item (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100),
     Quantidade INT,

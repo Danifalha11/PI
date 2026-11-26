@@ -1,3 +1,4 @@
+```csharp
 using MySql.Data.MySqlClient;
 using System;
 
@@ -28,7 +29,6 @@ public class Item
     public static Item? CadastrarItem()
     {
         Console.Write("Digite o nome do item: ");
-
         string? nome = Console.ReadLine();
 
         if (string.IsNullOrWhiteSpace(nome))
@@ -41,24 +41,21 @@ public class Item
 
         if (!int.TryParse(Console.ReadLine(), out int quantidade) || quantidade < 0)
         {
-            Console.WriteLine("Quantidade inválida. Deve ser um número inteiro não negativo.");
+            Console.WriteLine("Quantidade inválida.");
             return null;
         }
 
         Console.Write("Digite o tipo do item (Alimento/Roupa/Material): ");
-
         string? tipoItem = Console.ReadLine();
 
         if (!Enum.TryParse(tipoItem, true, out TipoItem tipoItemEnum) ||
             !Enum.IsDefined(typeof(TipoItem), tipoItemEnum))
         {
-            Console.WriteLine("Tipo inválido. Deve ser 'Alimento', 'Roupa' ou 'Material'.");
+            Console.WriteLine("Tipo inválido.");
             return null;
         }
 
-        Item novoItem = new Item(nome, quantidade, tipoItemEnum);
-
-        return novoItem;
+        return new Item(nome, quantidade, tipoItemEnum);
     }
 
     public bool Salvar()
@@ -74,18 +71,23 @@ public class Item
             using var conn = new Conexao().Conectar();
             conn.Open();
 
-            string sql = @"INSERT INTO Item (Nome, Quantidade, Tipo, DoadorId, NecessitadoId)
-                        VALUES (@nome, @quantidade, @tipo, @doadorId, @necessitadoId)";
+            string sql = @"INSERT INTO Item
+                (Nome, Quantidade, Tipo, DoadorId, NecessitadoId)
+                VALUES
+                (@nome, @quantidade, @tipo, @doadorId, @necessitadoId)";
 
             using var cmd = new MySqlCommand(sql, conn);
+
             cmd.Parameters.AddWithValue("@nome", Nome);
             cmd.Parameters.AddWithValue("@quantidade", Quantidade);
             cmd.Parameters.AddWithValue("@tipo", (int)Tipo);
             cmd.Parameters.AddWithValue("@doadorId", (object?)DoadorId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@necessitadoId", (object?)NecessitadoId ?? DBNull.Value);
+
             cmd.ExecuteNonQuery();
 
-            Id = (int)cmd.LastInsertedId;
+            Id = Convert.ToInt32(cmd.LastInsertedId);
+
             Console.WriteLine("Item salvo com sucesso!");
             return true;
         }
@@ -95,8 +97,9 @@ public class Item
             return false;
         }
     }
+
     public void ExibirItem()
-    {   
+    {
         Console.WriteLine($"ID: {Id} || Nome: {Nome} || Quantidade: {Quantidade} || Tipo: {Tipo} || Disponível: {(Disponivel ? "Sim" : "Não")}");
     }
 
@@ -108,6 +111,7 @@ public class Item
             conn.Open();
 
             string sql = "SELECT * FROM Item";
+
             using var cmd = new MySqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
 
@@ -119,15 +123,20 @@ public class Item
 
             while (reader.Read())
             {
-                int id = reader.GetInt32("Id");
-                string nome = reader.GetString("Nome");
-                int quantidade = reader.GetInt32("Quantidade");
-                TipoItem tipo = (TipoItem)reader.GetInt32("Tipo");
+                int id = reader.GetInt32(reader.GetOrdinal("Id"));
+                string nome = reader["Nome"] as string ?? string.Empty;
+                int quantidade = reader.GetInt32(reader.GetOrdinal("Quantidade"));
+                TipoItem tipo = (TipoItem)reader.GetInt32(reader.GetOrdinal("Tipo"));
 
-                Item item = new Item(nome, quantidade, tipo) { Id = id };
+                Item item = new Item(nome, quantidade, tipo)
+                {
+                    Id = id
+                };
+
                 item.ExibirItem();
                 Console.WriteLine("====================================================");
             }
+
             Console.WriteLine("Pressione qualquer tecla para continuar...");
             Console.ReadKey();
         }
@@ -147,6 +156,7 @@ public class Item
             conn.Open();
 
             string sql = "SELECT * FROM Item WHERE Id = @id";
+
             using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
 
@@ -154,18 +164,22 @@ public class Item
 
             if (reader.Read())
             {
-                string nome = reader.GetString("Nome");
-                int quantidade = reader.GetInt32("Quantidade");
-                TipoItem tipo = (TipoItem)reader.GetInt32("Tipo");
+                string nome = reader["Nome"] as string ?? string.Empty;
+                int quantidade = reader.GetInt32(reader.GetOrdinal("Quantidade"));
+                TipoItem tipo = (TipoItem)reader.GetInt32(reader.GetOrdinal("Tipo"));
 
-                Item item = new Item(nome, quantidade, tipo) { Id = id };
+                Item item = new Item(nome, quantidade, tipo)
+                {
+                    Id = id,
+                    DoadorId = reader["DoadorId"] == DBNull.Value ? null : Convert.ToInt32(reader["DoadorId"]),
+                    NecessitadoId = reader["NecessitadoId"] == DBNull.Value ? null : Convert.ToInt32(reader["NecessitadoId"])
+                };
+
                 return item;
             }
-            else
-            {
-                Console.WriteLine($"Item com ID {id} não encontrado.");
-                return null;
-            }
+
+            Console.WriteLine($"Item com ID {id} não encontrado.");
+            return null;
         }
         catch (MySqlException ex)
         {
@@ -177,45 +191,45 @@ public class Item
     public static string LerCampo(string nomeCampo, string? valorAtual)
     {
         Console.Write($"{nomeCampo} ({valorAtual}): ");
+
         string? novoValor = Console.ReadLine();
-        return string.IsNullOrWhiteSpace(novoValor) ? valorAtual ?? string.Empty : novoValor;
+
+        return string.IsNullOrWhiteSpace(novoValor)
+            ? valorAtual ?? string.Empty
+            : novoValor;
     }
 
-    public static int LerQuantidade(int atual){
+    public static int LerQuantidade(int atual)
+    {
         Console.Write($"Quantidade ({atual}): ");
         string? input = Console.ReadLine();
+
         if (string.IsNullOrWhiteSpace(input))
-        {
             return atual;
-        }
-        else if (int.TryParse(input, out int novaQuantidade) && novaQuantidade >= 0)
-        {
+
+        if (int.TryParse(input, out int novaQuantidade) && novaQuantidade >= 0)
             return novaQuantidade;
-        }
-        else
-        {
-            Console.WriteLine("Quantidade inválida. Deve ser um número inteiro não negativo.");
-            return LerQuantidade(atual);
-        }
+
+        Console.WriteLine("Quantidade inválida. Deve ser um número inteiro não negativo.");
+        return LerQuantidade(atual);
     }
 
     public static TipoItem LerTipoItem(TipoItem atual)
     {
         Console.Write($"Tipo do item ({atual}): ");
         string? input = Console.ReadLine();
+
         if (string.IsNullOrWhiteSpace(input))
-        {
             return atual;
-        }
-        else if (Enum.TryParse(input, true, out TipoItem novoTipo) && Enum.IsDefined(typeof(TipoItem), novoTipo))
+
+        if (Enum.TryParse(input, true, out TipoItem novoTipo) &&
+            Enum.IsDefined(typeof(TipoItem), novoTipo))
         {
             return novoTipo;
         }
-        else
-        {
-            Console.WriteLine("Tipo inválido. Deve ser 'Alimento', 'Roupa' ou 'Material'.");
-            return LerTipoItem(atual);
-        }
+
+        Console.WriteLine("Tipo inválido. Deve ser Alimento, Roupa ou Material.");
+        return LerTipoItem(atual);
     }
 
     public bool Atualizar()
@@ -225,9 +239,14 @@ public class Item
             using var conn = new Conexao().Conectar();
             conn.Open();
 
-            string sql = @"UPDATE Item SET Nome = @nome, Quantidade = @quantidade, Tipo = @tipo WHERE Id = @id";
+            string sql = @"UPDATE Item SET
+                Nome = @nome,
+                Quantidade = @quantidade,
+                Tipo = @tipo
+                WHERE Id = @id";
 
             using var cmd = new MySqlCommand(sql, conn);
+
             cmd.Parameters.AddWithValue("@nome", Nome);
             cmd.Parameters.AddWithValue("@quantidade", Quantidade);
             cmd.Parameters.AddWithValue("@tipo", (int)Tipo);
@@ -284,6 +303,7 @@ public class Item
     public static Item? AtualizarItem()
     {
         Console.Write("Digite o ID do item que deseja atualizar: ");
+
         if (!int.TryParse(Console.ReadLine(), out int id))
         {
             Console.WriteLine("ID inválido.");
@@ -291,23 +311,26 @@ public class Item
         }
 
         Item? item = BuscarItemPorId(id);
-        if (item == null) 
-        { 
-            return null; 
-        }
+
+        if (item == null)
+            return null;
 
         Console.WriteLine("Digite os novos valores para os campos (deixe em branco para manter o valor atual):");
+
         item.Nome = LerCampo("Nome", item.Nome);
         item.Quantidade = LerQuantidade(item.Quantidade);
         item.Tipo = LerTipoItem(item.Tipo);
 
-        item.Atualizar();
+        if (!item.Atualizar())
+            return null;
+
         return item;
     }
 
     public static Item? DeletarItem()
     {
         Console.Write("Digite o ID do item que deseja deletar: ");
+
         if (!int.TryParse(Console.ReadLine(), out int id))
         {
             Console.WriteLine("ID inválido.");
@@ -315,21 +338,24 @@ public class Item
         }
 
         Item? item = BuscarItemPorId(id);
-        if (item == null) 
-        { 
-            return null; 
-        }
+
+        if (item == null)
+            return null;
 
         item.ExibirItem();
+
         Console.Write("Tem certeza que deseja excluir este item? (S/N): ");
         string? resposta = Console.ReadLine();
+
         if (resposta?.Trim().ToUpper() != "S")
         {
             Console.WriteLine("Exclusão cancelada.");
             return null;
         }
 
-        item.Deletar();
+        if (!item.Deletar())
+            return null;
+
         return item;
     }
 }
