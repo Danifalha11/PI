@@ -1,4 +1,3 @@
-
 using System;
 using System.Threading;
 
@@ -127,15 +126,77 @@ public class Menus
         }
     }
 
-    public static void MenuNecessitados()
+  
+public static void MenuNecessitados()
+{
+    int opcaoNecessitados = 0;
+
+    while (opcaoNecessitados != 5)
     {
-        // Menu ainda precisa ser implementado.
         Console.Clear();
+
+        Console.WriteLine("===================================================");
         Console.WriteLine("Menu de Necessitados");
-        Console.WriteLine("Esta parte ainda não foi implementada.");
-        Console.WriteLine("Pressione qualquer tecla para voltar...");
-        Console.ReadKey();
+        Console.WriteLine("1. Cadastrar Necessitado");
+        Console.WriteLine("2. Listar Necessitados");
+        Console.WriteLine("3. Atualizar Necessitado");
+        Console.WriteLine("4. Deletar Necessitado");
+        Console.WriteLine("5. Voltar ao Menu Principal");
+        Console.WriteLine("===================================================");
+        Console.Write("Escolha uma opção: ");
+
+        if (int.TryParse(Console.ReadLine(), out opcaoNecessitados))
+        {
+            switch (opcaoNecessitados)
+            {
+                case 1:
+                    Necessitado? necessitado =
+                        Necessitado.CadastrarNecessitado();
+
+                    if (necessitado != null)
+                    {
+                        if (necessitado.Salvar())
+                            Console.WriteLine("Necessitado cadastrado com sucesso!");
+                        else
+                            Console.WriteLine("Não foi possível cadastrar.");
+                    }
+                    break;
+
+                case 2:
+                    Necessitado.ListarNecessitados();
+                    break;
+
+                case 3:
+                    Necessitado.AtualizarNecessitado();
+                    break;
+
+                case 4:
+                    Necessitado.DeletarNecessitado();
+                    break;
+
+                case 5:
+                    Console.WriteLine("Voltando ao Menu Principal...");
+                    Thread.Sleep(1000);
+                    break;
+
+                default:
+                    Console.WriteLine("Opção inválida.");
+                    break;
+            }
+        }
+        else
+        {
+            Console.WriteLine("Entrada inválida.");
+        }
+
+        if (opcaoNecessitados != 5)
+        {
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
     }
+}
+
 
     public static void MenuItens()
     {

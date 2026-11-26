@@ -1,4 +1,3 @@
-```csharp
 using MySql.Data.MySqlClient;
 using System;
 
