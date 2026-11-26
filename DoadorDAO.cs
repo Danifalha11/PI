@@ -95,16 +95,53 @@ public class Doador
         }
     }
 
-    public void ExibirCadastro()
+    public void ExibirDoadores()
     {
-        Console.WriteLine($"Nome: {Nome}");
-        Console.WriteLine($"Email: {Email}");
-        Console.WriteLine($"Cidade: {Cidade}");
-        Console.WriteLine($"Bairro: {Bairro}");
-        Console.WriteLine($"Nacionalidade: {Nacionalidade}");
-        Console.WriteLine($"Telefone: {Telefone}");
+        Console.WriteLine($"ID: {Id} || Nome: {Nome} || Email: {Email} || Cidade: {Cidade} || Bairro: {Bairro} || Nacionalidade: {Nacionalidade} || Telefone: {Telefone}");
     }
 
+    public static void ListarDoadores()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = "SELECT * FROM Doador";
+            using var cmd = new MySqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("Nenhum doador encontrado.");
+                return;
+            }
+
+            while (reader.Read())
+            {
+                int id = reader.GetInt32("Id");
+                string? nome = reader["Nome"] as string;
+                string? email = reader["Email"] as string;
+                string? cidade = reader["Cidade"] as string;
+                string? bairro = reader["Bairro"] as string;
+                string? nacionalidade = reader["Nacionalidade"] as string;
+                string? telefone = reader["Telefone"] as string;
+
+                Doador doador = new Doador(nome, email, cidade, bairro, nacionalidade, telefone) { Id = id };
+                doador.ExibirDoadores();
+                Console.WriteLine("====================================================");
+                Console.WriteLine("Pressione qualquer tecla para continuar...");
+                Console.ReadKey();
+            }
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao listar doadores: {ex.Message}");
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
+    }
+    
     public void AtualizarCadastro(
         string? nome,
         string? email,

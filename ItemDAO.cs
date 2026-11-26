@@ -97,11 +97,7 @@ public class Item
     }
     public void ExibirItem()
     {   
-        Console.WriteLine($"ID: {Id}");
-        Console.WriteLine($"Nome: {Nome}");
-        Console.WriteLine($"Quantidade: {Quantidade}");
-        Console.WriteLine($"Tipo: {Tipo}");
-        Console.WriteLine($"Disponível: {(Disponivel ? "Sim" : "Não")}");
+        Console.WriteLine($"ID: {Id} || Nome: {Nome} || Quantidade: {Quantidade} || Tipo: {Tipo} || Disponível: {(Disponivel ? "Sim" : "Não")}");
     }
 
     public static void ListarItens()

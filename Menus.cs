@@ -77,7 +77,7 @@ public class Menus
                         doador?.Salvar();
                         break;
                     case 2:
-                        // Fazer depois
+                        Doador.ListarDoadores();
                         break;
                     case 3:
                         Console.WriteLine("Voltando ao Menu Principal...");
