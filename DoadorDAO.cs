@@ -204,8 +204,14 @@ public class Doador
             comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
             comando.Parameters.AddWithValue("@Id", Id);
 
-            comando.ExecuteNonQuery();
+            int linhasAfetadas = comando.ExecuteNonQuery();
 
+            if (linhasAfetadas == 0)
+            {
+                Console.WriteLine("Nenhum doador encontrado para atualizar.");
+                return false;
+            }
+            
             Console.WriteLine("Doador atualizado com sucesso!");
             return true;
         }
@@ -228,16 +234,15 @@ public class Doador
             comando.Parameters.AddWithValue("@Id", Id);
 
             int linhasAfetadas = comando.ExecuteNonQuery();
-            if (linhasAfetadas > 0)
-            {
-                Console.WriteLine("Doador deletado com sucesso!");
-                return true;
-            }
-            else
+            if (linhasAfetadas == 0)
             {
                 Console.WriteLine("Nenhum doador encontrado para deletar.");
                 return false;
             }
+              
+            Console.WriteLine("Doador deletado com sucesso!");
+            return true;
+            
         }
         catch (MySqlException ex) when (ex.Number == 1451)
         {

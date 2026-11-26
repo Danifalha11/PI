@@ -11,14 +11,14 @@ public enum TipoItem
 public class Item
 {
     public int Id { get; set; }
-    public string? Nome { get; set; }
+    public string Nome { get; set; }
     public int Quantidade { get; set; }
     public TipoItem Tipo { get; set; }
     public bool Disponivel => Quantidade > 0;
     public int? DoadorId { get; set; }
     public int? NecessitadoId { get; set; }
 
-    public Item(string? nome, int quantidade, TipoItem tipo)
+    public Item(string nome, int quantidade, TipoItem tipo)
     {
         Nome = nome;
         Quantidade = quantidade;
@@ -127,9 +127,9 @@ public class Item
                 Item item = new Item(nome, quantidade, tipo) { Id = id };
                 item.ExibirItem();
                 Console.WriteLine("====================================================");
-                Console.WriteLine("Pressione qualquer tecla para continuar...");
-                Console.ReadKey();
             }
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
         }
         catch (MySqlException ex)
         {
@@ -137,5 +137,199 @@ public class Item
             Console.WriteLine("Pressione qualquer tecla para continuar...");
             Console.ReadKey();
         }
+    }
+
+    public static Item? BuscarItemPorId(int id)
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = "SELECT * FROM Item WHERE Id = @id";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            using var reader = cmd.ExecuteReader();
+
+            if (reader.Read())
+            {
+                string nome = reader.GetString("Nome");
+                int quantidade = reader.GetInt32("Quantidade");
+                TipoItem tipo = (TipoItem)reader.GetInt32("Tipo");
+
+                Item item = new Item(nome, quantidade, tipo) { Id = id };
+                return item;
+            }
+            else
+            {
+                Console.WriteLine($"Item com ID {id} não encontrado.");
+                return null;
+            }
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao buscar item: {ex.Message}");
+            return null;
+        }
+    }
+
+    public static string LerCampo(string nomeCampo, string? valorAtual)
+    {
+        Console.Write($"{nomeCampo} ({valorAtual}): ");
+        string? novoValor = Console.ReadLine();
+        return string.IsNullOrWhiteSpace(novoValor) ? valorAtual ?? string.Empty : novoValor;
+    }
+
+    public static int LerQuantidade(int atual){
+        Console.Write($"Quantidade ({atual}): ");
+        string? input = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return atual;
+        }
+        else if (int.TryParse(input, out int novaQuantidade) && novaQuantidade >= 0)
+        {
+            return novaQuantidade;
+        }
+        else
+        {
+            Console.WriteLine("Quantidade inválida. Deve ser um número inteiro não negativo.");
+            return LerQuantidade(atual);
+        }
+    }
+
+    public static TipoItem LerTipoItem(TipoItem atual)
+    {
+        Console.Write($"Tipo do item ({atual}): ");
+        string? input = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return atual;
+        }
+        else if (Enum.TryParse(input, true, out TipoItem novoTipo) && Enum.IsDefined(typeof(TipoItem), novoTipo))
+        {
+            return novoTipo;
+        }
+        else
+        {
+            Console.WriteLine("Tipo inválido. Deve ser 'Alimento', 'Roupa' ou 'Material'.");
+            return LerTipoItem(atual);
+        }
+    }
+
+    public bool Atualizar()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = @"UPDATE Item SET Nome = @nome, Quantidade = @quantidade, Tipo = @tipo WHERE Id = @id";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@nome", Nome);
+            cmd.Parameters.AddWithValue("@quantidade", Quantidade);
+            cmd.Parameters.AddWithValue("@tipo", (int)Tipo);
+            cmd.Parameters.AddWithValue("@id", Id);
+
+            int linhasAfetadas = cmd.ExecuteNonQuery();
+
+            if (linhasAfetadas == 0)
+            {
+                Console.WriteLine("Nenhum item encontrado para atualizar.");
+                return false;
+            }
+
+            Console.WriteLine("Item atualizado com sucesso!");
+            return true;
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao atualizar item: {ex.Message}");
+            return false;
+        }
+    }
+
+    public bool Deletar()
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = "DELETE FROM Item WHERE Id = @id";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", Id);
+
+            int linhasAfetadas = cmd.ExecuteNonQuery();
+
+            if (linhasAfetadas == 0)
+            {
+                Console.WriteLine("Nenhum item encontrado para deletar.");
+                return false;
+            }
+
+            Console.WriteLine("Item deletado com sucesso!");
+            return true;
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao deletar item: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static Item? AtualizarItem()
+    {
+        Console.Write("Digite o ID do item que deseja atualizar: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("ID inválido.");
+            return null;
+        }
+
+        Item? item = BuscarItemPorId(id);
+        if (item == null) 
+        { 
+            return null; 
+        }
+
+        Console.WriteLine("Digite os novos valores para os campos (deixe em branco para manter o valor atual):");
+        item.Nome = LerCampo("Nome", item.Nome);
+        item.Quantidade = LerQuantidade(item.Quantidade);
+        item.Tipo = LerTipoItem(item.Tipo);
+
+        item.Atualizar();
+        return item;
+    }
+
+    public static Item? DeletarItem()
+    {
+        Console.Write("Digite o ID do item que deseja deletar: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("ID inválido.");
+            return null;
+        }
+
+        Item? item = BuscarItemPorId(id);
+        if (item == null) 
+        { 
+            return null; 
+        }
+
+        item.ExibirItem();
+        Console.Write("Tem certeza que deseja excluir este item? (S/N): ");
+        string? resposta = Console.ReadLine();
+        if (resposta?.Trim().ToUpper() != "S")
+        {
+            Console.WriteLine("Exclusão cancelada.");
+            return null;
+        }
+
+        item.Deletar();
+        return item;
     }
 }
