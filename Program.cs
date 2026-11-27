@@ -16,7 +16,8 @@ class Program
         }
         catch (Exception erro)
         {
-            Console.WriteLine("Erro ao conectar:");
+            Console.WriteLine("Erro ao conectar: " + erro.Message);
+            return;
         }
 
         Menus.MenuPrincipal();
