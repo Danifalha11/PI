@@ -1,3 +1,4 @@
+
 using System;
 using System.Threading;
 
@@ -10,6 +11,7 @@ public class Menus
         while (opcaoPrincipal != 4)
         {
             Console.Clear();
+
             Console.WriteLine("===================================================");
             Console.WriteLine("Menu Principal");
             Console.WriteLine("1. Menu de Doadores");
@@ -65,6 +67,7 @@ public class Menus
         while (opcaoDoadores != 5)
         {
             Console.Clear();
+
             Console.WriteLine("===================================================");
             Console.WriteLine("Menu de Doadores");
             Console.WriteLine("1. Cadastrar Doador");
@@ -126,77 +129,75 @@ public class Menus
         }
     }
 
-  
-public static void MenuNecessitados()
-{
-    int opcaoNecessitados = 0;
-
-    while (opcaoNecessitados != 5)
+    public static void MenuNecessitados()
     {
-        Console.Clear();
+        int opcaoNecessitados = 0;
 
-        Console.WriteLine("===================================================");
-        Console.WriteLine("Menu de Necessitados");
-        Console.WriteLine("1. Cadastrar Necessitado");
-        Console.WriteLine("2. Listar Necessitados");
-        Console.WriteLine("3. Atualizar Necessitado");
-        Console.WriteLine("4. Deletar Necessitado");
-        Console.WriteLine("5. Voltar ao Menu Principal");
-        Console.WriteLine("===================================================");
-        Console.Write("Escolha uma opção: ");
-
-        if (int.TryParse(Console.ReadLine(), out opcaoNecessitados))
+        while (opcaoNecessitados != 5)
         {
-            switch (opcaoNecessitados)
+            Console.Clear();
+
+            Console.WriteLine("===================================================");
+            Console.WriteLine("Menu de Necessitados");
+            Console.WriteLine("1. Cadastrar Necessitado");
+            Console.WriteLine("2. Listar Necessitados");
+            Console.WriteLine("3. Atualizar Necessitado");
+            Console.WriteLine("4. Deletar Necessitado");
+            Console.WriteLine("5. Voltar ao Menu Principal");
+            Console.WriteLine("===================================================");
+            Console.Write("Escolha uma opção: ");
+
+            if (int.TryParse(Console.ReadLine(), out opcaoNecessitados))
             {
-                case 1:
-                    Necessitado? necessitado =
-                    Necessitado.CadastrarNecessitado();
+                switch (opcaoNecessitados)
+                {
+                    case 1:
+                        Necessitado? necessitado =
+                            Necessitado.CadastrarNecessitado();
 
-                    if (necessitado != null)
-                    {
-                        if (necessitado.Salvar())
-                            Console.WriteLine("Necessitado cadastrado com sucesso!");
-                        else
-                            Console.WriteLine("Não foi possível cadastrar.");
-                    }
-                    break;
+                        if (necessitado != null)
+                        {
+                            if (necessitado.Salvar())
+                                Console.WriteLine("Necessitado cadastrado com sucesso!");
+                            else
+                                Console.WriteLine("Não foi possível cadastrar.");
+                        }
+                        break;
 
-                case 2:
-                    Necessitado.ListarNecessitados();
-                    break;
+                    case 2:
+                        Necessitado.ListarNecessitados();
+                        break;
 
-                case 3:
-                    Necessitado.AtualizarNecessitado();
-                    break;
+                    case 3:
+                        Necessitado.AtualizarNecessitado();
+                        break;
 
-                case 4:
-                    Necessitado.DeletarNecessitado();
-                    break;
+                    case 4:
+                        Necessitado.DeletarNecessitado();
+                        break;
 
-                case 5:
-                    Console.WriteLine("Voltando ao Menu Principal...");
-                    Thread.Sleep(1000);
-                    break;
+                    case 5:
+                        Console.WriteLine("Voltando ao Menu Principal...");
+                        Thread.Sleep(1000);
+                        break;
 
-                default:
-                    Console.WriteLine("Opção inválida.");
-                    break;
+                    default:
+                        Console.WriteLine("Opção inválida.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Entrada inválida.");
+            }
+
+            if (opcaoNecessitados != 5)
+            {
+                Console.WriteLine("Pressione qualquer tecla para continuar...");
+                Console.ReadKey();
             }
         }
-        else
-        {
-            Console.WriteLine("Entrada inválida.");
-        }
-
-        if (opcaoNecessitados != 5)
-        {
-            Console.WriteLine("Pressione qualquer tecla para continuar...");
-            Console.ReadKey();
-        }
     }
-}
-
 
     public static void MenuItens()
     {
@@ -205,13 +206,18 @@ public static void MenuNecessitados()
         while (opcaoItens != 9)
         {
             Console.Clear();
+
             Console.WriteLine("===================================================");
             Console.WriteLine("Menu de Itens");
             Console.WriteLine("1. Cadastrar Item");
             Console.WriteLine("2. Listar Itens");
             Console.WriteLine("3. Atualizar Item");
             Console.WriteLine("4. Deletar Item");
-            Console.WriteLine("5. Voltar ao Menu Principal");
+            Console.WriteLine("5. Listar Itens de um Doador");
+            Console.WriteLine("6. Listar Itens de um Necessitado");
+            Console.WriteLine("7. Buscar Quem Precisa");
+            Console.WriteLine("8. Registrar Doação");
+            Console.WriteLine("9. Voltar ao Menu Principal");
             Console.WriteLine("===================================================");
             Console.Write("Escolha uma opção: ");
 
@@ -238,18 +244,26 @@ public static void MenuNecessitados()
                     case 5:
                         Item.ListarItensDoDoador();
                         break;
+
                     case 6:
                         Item.ListarItensDoNecessitado();
                         break;
+
                     case 7:
                         Item.BuscarQuemPrecisa();
                         break;
+
                     case 8:
                         Item.RegistrarDoacao();
                         break;
+
                     case 9:
                         Console.WriteLine("Voltando ao Menu Principal...");
                         Thread.Sleep(1000);
+                        break;
+
+                    default:
+                        Console.WriteLine("Opção inválida.");
                         break;
                 }
             }

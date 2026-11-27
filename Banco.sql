@@ -55,12 +55,5 @@ CREATE TABLE IF NOT EXISTS Item (
         ON DELETE RESTRICT,
 
     CONSTRAINT chk_item_quantidade
-        CHECK (Quantidade >= 0),
-
-    CONSTRAINT chk_item_vinculo
-        CHECK (
-            (DoadorId IS NOT NULL AND NecessitadoId IS NULL)
-            OR
-            (DoadorId IS NULL AND NecessitadoId IS NOT NULL)
-        )
+        CHECK (Quantidade >= 0)
 );
