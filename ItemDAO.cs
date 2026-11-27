@@ -32,7 +32,7 @@ public class Item
 
         if (string.IsNullOrWhiteSpace(nome))
         {
-            Console.WriteLine("Nome do item não pode ser vazio.");
+            Console.WriteLine("O nome não pode ser vazio.");
             return null;
         }
 
@@ -40,7 +40,7 @@ public class Item
 
         if (!int.TryParse(Console.ReadLine(), out int quantidade) || quantidade < 0)
         {
-            Console.WriteLine("Quantidade inválida.");
+            Console.WriteLine("Quantidade inválida, deve ser um número inteiro não negativo.");
             return null;
         }
 
