@@ -357,4 +357,217 @@ public class Item
 
         return item;
     }
+
+    public static void BuscarQuemPrecisa()
+    {
+        Console.Write("Digite o tipo de item que deseja buscar (Alimento/Roupa/Material): ");
+        string? tipoItem = Console.ReadLine();
+
+        if (!Enum.TryParse(tipoItem, true, out TipoItem tipoItemEnum) ||
+            !Enum.IsDefined(typeof(TipoItem), tipoItemEnum))
+        {
+            Console.WriteLine("Tipo inválido.");
+            return;
+        }
+
+        Console.Write("Cidade do necessitado (deixe em branco para não filtrar): ");
+        string? cidade = Console.ReadLine();
+
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = @"SELECT n.Id, n.Nome, n.Cidade, n.Bairro, n.Telefone, n.NivelUrgencia,
+                              i.Id AS ItemId, i.Nome AS ItemNome, i.Quantidade
+                            FROM Necessitado n
+                            JOIN Item i ON i.NecessitadoId = n.Id
+                            WHERE i.Tipo = @tipo
+                                AND i.Quantidade > 0
+                                AND (@cidade IS NULL OR n.Cidade = @cidade)
+                            ORDER BY n.NivelUrgencia DESC";
+                        
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@tipo", (int)tipoItemEnum);
+            cmd.Parameters.AddWithValue("@cidade", string.IsNullOrWhiteSpace(cidade) ? DBNull.Value : cidade.Trim());
+
+            using var reader = cmd.ExecuteReader();
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("Nenhum necessitado encontrado para o tipo de item especificado.");
+                return;
+            }
+
+            while (reader.Read())
+            {
+                string urgencia = reader.GetInt32("NivelUrgencia") switch
+                {
+                    0 => "Baixa",
+                    1 => "Média",
+                    2 => "Alta",
+                    _ => "Não informada"
+                };
+
+                Console.WriteLine($"Necessitado: {reader["Nome"]} (Id {reader.GetInt32("Id")})");
+                Console.WriteLine($"Local: {reader["Bairro"]}, {reader["Cidade"]}");
+                Console.WriteLine($"Telefone: {reader["Telefone"]}");
+                Console.WriteLine($"Urgência: {urgencia}");
+                Console.WriteLine($"Precisa de: {reader["ItemNome"]} - {reader.GetInt32("Quantidade")} unidade(s) (Id do item: {reader.GetInt32("ItemId")})");
+                Console.WriteLine("====================================================");
+            
+            }
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao buscar necessitados: {ex.Message}");
+        }
+    }
+
+    public static void ListarItensPorDono(string coluna, int idDono)
+    {
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+
+            string sql = $"SELECT * FROM Item WHERE {coluna} = @idDono";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@idDono", idDono);
+
+            using var reader = cmd.ExecuteReader();
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("Nenhum item encontrado para este dono.");
+                return;
+            }
+
+            while (reader.Read())
+            {
+                Item item = new Item(
+                (reader["Nome"] as string) ?? string.Empty,   
+                reader.GetInt32("Quantidade"),
+                (TipoItem)reader.GetInt32("Tipo")) { Id = reader.GetInt32("Id") };
+
+            item.ExibirItem();
+            Console.WriteLine("====================================================");
+            }
+
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao listar itens: {ex.Message}");
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
+        }
+    }
+
+    public static void ListarItensDoDoador(int doadorId)
+    {
+        Console.WriteLine("--- Doadores Cadastrados ---");
+        Doador.ListarDoadores();
+
+        Console.Write("\nDigite o ID do doador para listar seus itens: ");
+        if (!int.TryParse(Console.ReadLine(), out int idDoador))
+        {
+            Console.WriteLine("ID inválido.");
+            return;
+        }
+
+        ListarItensPorDono("DoadorId", doadorId);
+    }
+
+        public static void ListarItensDoNecessitado(int necessitadoId)
+    {
+        Console.WriteLine("--- Necessitados Cadastrados ---");
+        Necessitado.ListarNecessitados();
+
+        Console.Write("\nDigite o ID do necessitado para listar seus itens: ");
+        if (!int.TryParse(Console.ReadLine(), out int idNecessitado))
+        {
+            Console.WriteLine("ID inválido.");
+            return;
+        }
+
+        ListarItensPorDono("DoadorId", necessitadoId);
+    }
+
+    public static void RegistrarDoacao()
+    {
+        Console.Write("Digite o ID do item que deseja doar: ");
+        if (!int.TryParse(Console.ReadLine(), out int itemId))
+        {
+            Console.WriteLine("ID inválido.");
+            return;
+        }
+
+        Console.Write("Digite o ID do item que o necessitado precisa: ");
+        if (!int.TryParse(Console.ReadLine(), out int itemNecessitadoId))
+        {
+            Console.WriteLine("ID inválido.");
+            return;
+        }
+
+        Console.Write("Digite a quantidade que deseja doar: ");
+        if (!int.TryParse(Console.ReadLine(), out int quantidadeDoada) || quantidadeDoada <= 0)
+        {
+            Console.WriteLine("Quantidade inválida.");
+            return;
+        }
+
+        try
+        {
+            using var conn = new Conexao().Conectar();
+            conn.Open();
+            using var transacao = conn.BeginTransaction();
+
+            string sqlDoador = @"UPDATE Item
+                                SET Quantidade = Quantidade - @quantidadeDoada
+                                WHERE Id = @itemId
+                                AND DoadorId IS NOT NULL
+                                AND Quantidade >= @quantidadeDoada";
+
+            using (var cmd = new MySqlCommand(sqlDoador, conn, transacao))
+            {
+                cmd.Parameters.AddWithValue("@quantidadeDoada", quantidadeDoada);
+                cmd.Parameters.AddWithValue("@itemId", itemId);
+
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    transacao.Rollback();
+                    Console.WriteLine("Não foi possível registrar a doação. Verifique se o item é de um doador e se há quantidade suficiente.");
+                    return;
+                }
+            }
+
+            string sqlNecessitado = @"UPDATE Item
+                                    SET Quantidade = GREATEST(Quantidade - @quantidadeDoada, 0)
+                                    WHERE Id = @itemNecessitadoId
+                                        AND NecessitadoId IS NOT NULL";
+
+            using (var cmd = new MySqlCommand(sqlNecessitado, conn, transacao))
+            {
+                cmd.Parameters.AddWithValue("@quantidadeDoada", quantidadeDoada);
+                cmd.Parameters.AddWithValue("@itemNecessitadoId", itemNecessitadoId);
+
+                if (cmd.ExecuteNonQuery() == 0)
+                {
+                    transacao.Rollback();
+                    Console.WriteLine("Não foi possível registrar a doação. Verifique se o item informado é de um necessitado.");
+                    return;
+                }
+            }
+
+            transacao.Commit();
+            Console.WriteLine("Doação registrada com sucesso!");
+        }
+        catch (MySqlException ex)
+        {
+            Console.WriteLine($"Erro ao registrar doação: {ex.Message}");
+        }
+    }
 }

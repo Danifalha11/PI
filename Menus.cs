@@ -151,7 +151,7 @@ public static void MenuNecessitados()
             {
                 case 1:
                     Necessitado? necessitado =
-                        Necessitado.CadastrarNecessitado();
+                    Necessitado.CadastrarNecessitado();
 
                     if (necessitado != null)
                     {
@@ -202,7 +202,7 @@ public static void MenuNecessitados()
     {
         int opcaoItens = 0;
 
-        while (opcaoItens != 5)
+        while (opcaoItens != 9)
         {
             Console.Clear();
             Console.WriteLine("===================================================");
@@ -236,12 +236,20 @@ public static void MenuNecessitados()
                         break;
 
                     case 5:
+                        Item.ListarItensDoDoador();
+                        break;
+                    case 6:
+                        Item.ListarItensDoNecessitado();
+                        break;
+                    case 7:
+                        Item.BuscarQuemPrecisa();
+                        break;
+                    case 8:
+                        Item.RegistrarDoacao();
+                        break;
+                    case 9:
                         Console.WriteLine("Voltando ao Menu Principal...");
                         Thread.Sleep(1000);
-                        break;
-
-                    default:
-                        Console.WriteLine("Opção inválida.");
                         break;
                 }
             }
@@ -250,7 +258,7 @@ public static void MenuNecessitados()
                 Console.WriteLine("Entrada inválida.");
             }
 
-            if (opcaoItens != 5)
+            if (opcaoItens != 9)
             {
                 Console.WriteLine("Pressione qualquer tecla para continuar...");
                 Console.ReadKey();

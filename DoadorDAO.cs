@@ -32,6 +32,7 @@ public class Doador
 
     public static Doador? CadastrarDoador()
     {
+        Console.WriteLine("\n--- Cadastro de Doador ---");
         Console.Write("Digite o nome do doador: ");
         string? nome = Console.ReadLine();
 
