@@ -23,17 +23,6 @@ CREATE TABLE IF NOT EXISTS Necessitado (
     NivelUrgencia INT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS InstituicaoDoacao (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Nome VARCHAR(100) NOT NULL,
-    CNPJ VARCHAR(20),
-    Email VARCHAR(100),
-    Cidade VARCHAR(100),
-    Bairro VARCHAR(100),
-    Endereco VARCHAR(200),
-    Telefone VARCHAR(20)
-);
-
 CREATE TABLE IF NOT EXISTS Item (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nome VARCHAR(100) NOT NULL,
@@ -57,3 +46,6 @@ CREATE TABLE IF NOT EXISTS Item (
     CONSTRAINT chk_item_quantidade
         CHECK (Quantidade >= 0)
 );
+SELECT * FROM Doador;
+SELECT * FROM Necessitado;
+SELECT * FROM Item;
