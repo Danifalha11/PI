@@ -12,7 +12,14 @@ public class SiteDoacao : Doador
         string? telefone)
         : base(nome, email, null, null, nacionalidade, telefone)
     {
-        Idade = idade;
+        if (idade < 0)
+        {
+            Idade = 0;
+        }
+        else
+        {
+            Idade = idade;
+        }
     }
 
     public void Doacao()

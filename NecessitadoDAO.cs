@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using MySql.Data.MySqlClient;
 
 public enum NivelUrgencia
@@ -18,18 +17,10 @@ public class Necessitado
     public string? Bairro { get; set; }
     public string? Nacionalidade { get; set; }
     public string? Telefone { get; set; }
-
     public NivelUrgencia NivelUrgencia { get; set; }
 
-    public List<Item> ItensNecessarios { get; set; } = new List<Item>();
-
-    public Necessitado(
-        string? nome,
-        string? email,
-        string? cidade,
-        string? bairro,
-        string? nacionalidade,
-        string? telefone,
+    public Necessitado(string? nome, string? email, string? cidade,
+        string? bairro, string? nacionalidade, string? telefone,
         NivelUrgencia nivelUrgencia)
     {
         Nome = nome;
@@ -50,7 +41,7 @@ public class Necessitado
 
         if (string.IsNullOrWhiteSpace(nome))
         {
-            Console.WriteLine("O nome é obrigatório.");
+            Console.WriteLine("Nome inválido.");
             return null;
         }
 
@@ -76,69 +67,50 @@ public class Necessitado
         Console.Write("Escolha: ");
 
         if (!int.TryParse(Console.ReadLine(), out int nivel) ||
-            !Enum.IsDefined(typeof(NivelUrgencia), nivel))
+            nivel < 0 || nivel > 2)
         {
-            Console.WriteLine("Nível de urgência inválido.");
+            Console.WriteLine("Nível inválido.");
             return null;
         }
 
-        return new Necessitado(
-            nome,
-            email,
-            cidade,
-            bairro,
-            nacionalidade,
-            telefone,
-            (NivelUrgencia)nivel
-        );
+        return new Necessitado(nome, email, cidade, bairro,
+            nacionalidade, telefone, (NivelUrgencia)nivel);
     }
 
-    // Salva no MySQL
     public bool Salvar()
     {
-        if (string.IsNullOrWhiteSpace(Nome))
-        {
-            Console.WriteLine("O nome é obrigatório.");
-            return false;
-        }
-
-        if (!Enum.IsDefined(typeof(NivelUrgencia), NivelUrgencia))
-        {
-            Console.WriteLine("Nível de urgência inválido.");
-            return false;
-        }
-
         try
         {
-            using MySqlConnection conexao = new Conexao().Conectar();
-            conexao.Open();
+            using (MySqlConnection conexao = new Conexao().Conectar())
+            {
+                conexao.Open();
 
-            string sql = @"INSERT INTO Necessitado
-                (Nome, Email, Cidade, Bairro, Nacionalidade,
-                 Telefone, NivelUrgencia)
+                string sql = @"INSERT INTO Necessitado
+                (Nome, Email, Cidade, Bairro, Nacionalidade, Telefone, NivelUrgencia)
                 VALUES
-                (@Nome, @Email, @Cidade, @Bairro, @Nacionalidade,
-                 @Telefone, @NivelUrgencia)";
+                (@Nome, @Email, @Cidade, @Bairro, @Nacionalidade, @Telefone, @NivelUrgencia)";
 
-            using MySqlCommand comando = new MySqlCommand(sql, conexao);
+                MySqlCommand comando = new MySqlCommand(sql, conexao);
 
-            comando.Parameters.AddWithValue("@Nome", Nome);
-            comando.Parameters.AddWithValue("@Email", (object?)Email ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Cidade", (object?)Cidade ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Bairro", (object?)Bairro ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Nacionalidade", (object?)Nacionalidade ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@NivelUrgencia", (int)NivelUrgencia);
+                comando.Parameters.AddWithValue("@Nome", Nome);
+                comando.Parameters.AddWithValue("@Email", (object?)Email ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Cidade", (object?)Cidade ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Bairro", (object?)Bairro ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Nacionalidade", (object?)Nacionalidade ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@NivelUrgencia", (int)NivelUrgencia);
 
-            comando.ExecuteNonQuery();
+                comando.ExecuteNonQuery();
 
-            Id = Convert.ToInt32(comando.LastInsertedId);
+                Id = Convert.ToInt32(comando.LastInsertedId);
 
-            return true;
+                Console.WriteLine("Necessitado cadastrado com sucesso!");
+                return true;
+            }
         }
-        catch (MySqlException erro)
+        catch (Exception erro)
         {
-            Console.WriteLine("Erro ao salvar necessitado: " + erro.Message);
+            Console.WriteLine("Erro ao cadastrar: " + erro.Message);
             return false;
         }
     }
@@ -147,46 +119,48 @@ public class Necessitado
     {
         try
         {
-            using MySqlConnection conexao = new Conexao().Conectar();
-            conexao.Open();
-
-            string sql = "SELECT * FROM Necessitado";
-
-            using MySqlCommand comando = new MySqlCommand(sql, conexao);
-            using MySqlDataReader reader = comando.ExecuteReader();
-
-            Console.WriteLine("\n--- Lista de Necessitados ---");
-
-            bool encontrou = false;
-
-            while (reader.Read())
+            using (MySqlConnection conexao = new Conexao().Conectar())
             {
-                encontrou = true;
+                conexao.Open();
 
-                int nivel = Convert.ToInt32(reader["NivelUrgencia"]);
+                string sql = "SELECT * FROM Necessitado";
 
-                Necessitado necessitado = new Necessitado(
-                    reader["Nome"].ToString(),
-                    reader["Email"] as string,
-                    reader["Cidade"] as string,
-                    reader["Bairro"] as string,
-                    reader["Nacionalidade"] as string,
-                    reader["Telefone"] as string,
-                    (NivelUrgencia)nivel
-                );
+                MySqlCommand comando = new MySqlCommand(sql, conexao);
+                MySqlDataReader leitor = comando.ExecuteReader();
 
-                necessitado.Id = Convert.ToInt32(reader["Id"]);
+                bool encontrou = false;
 
-                necessitado.ExibirCadastro();
-                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("\n--- Lista de Necessitados ---");
+
+                while (leitor.Read())
+                {
+                    encontrou = true;
+
+                    Necessitado necessitado = new Necessitado(
+                        leitor["Nome"].ToString(),
+                        leitor["Email"].ToString(),
+                        leitor["Cidade"].ToString(),
+                        leitor["Bairro"].ToString(),
+                        leitor["Nacionalidade"].ToString(),
+                        leitor["Telefone"].ToString(),
+                        (NivelUrgencia)Convert.ToInt32(leitor["NivelUrgencia"])
+                    );
+
+                    necessitado.Id = Convert.ToInt32(leitor["Id"]);
+
+                    necessitado.ExibirCadastro();
+                    Console.WriteLine("----------------------------");
+                }
+
+                leitor.Close();
+
+                if (!encontrou)
+                    Console.WriteLine("Nenhum necessitado cadastrado.");
             }
-
-            if (!encontrou)
-                Console.WriteLine("Nenhum necessitado cadastrado.");
         }
-        catch (MySqlException erro)
+        catch (Exception erro)
         {
-            Console.WriteLine("Erro ao listar necessitados: " + erro.Message);
+            Console.WriteLine("Erro ao listar: " + erro.Message);
         }
     }
 
@@ -194,54 +168,61 @@ public class Necessitado
     {
         try
         {
-            using MySqlConnection conexao = new Conexao().Conectar();
-            conexao.Open();
-
-            string sql = "SELECT * FROM Necessitado WHERE Id = @Id";
-
-            using MySqlCommand comando = new MySqlCommand(sql, conexao);
-            comando.Parameters.AddWithValue("@Id", id);
-
-            using MySqlDataReader reader = comando.ExecuteReader();
-
-            if (reader.Read())
+            using (MySqlConnection conexao = new Conexao().Conectar())
             {
-                int nivel = Convert.ToInt32(reader["NivelUrgencia"]);
+                conexao.Open();
 
-                Necessitado necessitado = new Necessitado(
-                    reader["Nome"].ToString(),
-                    reader["Email"] as string,
-                    reader["Cidade"] as string,
-                    reader["Bairro"] as string,
-                    reader["Nacionalidade"] as string,
-                    reader["Telefone"] as string,
-                    (NivelUrgencia)nivel
-                );
+                string sql = "SELECT * FROM Necessitado WHERE Id = @Id";
 
-                necessitado.Id = Convert.ToInt32(reader["Id"]);
+                MySqlCommand comando = new MySqlCommand(sql, conexao);
+                comando.Parameters.AddWithValue("@Id", id);
 
-                return necessitado;
+                MySqlDataReader leitor = comando.ExecuteReader();
+
+                if (leitor.Read())
+                {
+                    Necessitado necessitado = new Necessitado(
+                        leitor["Nome"].ToString(),
+                        leitor["Email"].ToString(),
+                        leitor["Cidade"].ToString(),
+                        leitor["Bairro"].ToString(),
+                        leitor["Nacionalidade"].ToString(),
+                        leitor["Telefone"].ToString(),
+                        (NivelUrgencia)Convert.ToInt32(leitor["NivelUrgencia"])
+                    );
+
+                    necessitado.Id = Convert.ToInt32(leitor["Id"]);
+
+                    leitor.Close();
+                    return necessitado;
+                }
+
+                leitor.Close();
+                return null;
             }
         }
-        catch (MySqlException erro)
+        catch (Exception erro)
         {
-            Console.WriteLine("Erro ao buscar necessitado: " + erro.Message);
+            Console.WriteLine("Erro ao buscar: " + erro.Message);
+            return null;
         }
-
-        return null;
     }
 
     public bool Atualizar()
     {
-        if (Id <= 0 || string.IsNullOrWhiteSpace(Nome))
+        if (string.IsNullOrWhiteSpace(Nome))
+        {
+            Console.WriteLine("O nome não pode ficar vazio.");
             return false;
+        }
 
         try
         {
-            using MySqlConnection conexao = new Conexao().Conectar();
-            conexao.Open();
+            using (MySqlConnection conexao = new Conexao().Conectar())
+            {
+                conexao.Open();
 
-            string sql = @"UPDATE Necessitado SET
+                string sql = @"UPDATE Necessitado SET
                 Nome = @Nome,
                 Email = @Email,
                 Cidade = @Cidade,
@@ -251,24 +232,25 @@ public class Necessitado
                 NivelUrgencia = @NivelUrgencia
                 WHERE Id = @Id";
 
-            using MySqlCommand comando = new MySqlCommand(sql, conexao);
+                MySqlCommand comando = new MySqlCommand(sql, conexao);
 
-            comando.Parameters.AddWithValue("@Id", Id);
-            comando.Parameters.AddWithValue("@Nome", Nome);
-            comando.Parameters.AddWithValue("@Email", (object?)Email ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Cidade", (object?)Cidade ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Bairro", (object?)Bairro ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Nacionalidade", (object?)Nacionalidade ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
-            comando.Parameters.AddWithValue("@NivelUrgencia", (int)NivelUrgencia);
+                comando.Parameters.AddWithValue("@Id", Id);
+                comando.Parameters.AddWithValue("@Nome", Nome);
+                comando.Parameters.AddWithValue("@Email", (object?)Email ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Cidade", (object?)Cidade ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Bairro", (object?)Bairro ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Nacionalidade", (object?)Nacionalidade ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@Telefone", (object?)Telefone ?? DBNull.Value);
+                comando.Parameters.AddWithValue("@NivelUrgencia", (int)NivelUrgencia);
 
-            int linhas = comando.ExecuteNonQuery();
+                int resultado = comando.ExecuteNonQuery();
 
-            return linhas > 0;
+                return resultado > 0;
+            }
         }
-        catch (MySqlException erro)
+        catch (Exception erro)
         {
-            Console.WriteLine("Erro ao atualizar necessitado: " + erro.Message);
+            Console.WriteLine("Erro ao atualizar: " + erro.Message);
             return false;
         }
     }
@@ -293,50 +275,25 @@ public class Necessitado
 
         Console.WriteLine("\nDeixe vazio para manter o valor atual.");
 
-        Console.Write($"Nome ({necessitado.Nome}): ");
-        string? nome = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(nome))
-            necessitado.Nome = nome;
-
-        Console.Write($"Email ({necessitado.Email}): ");
-        string? email = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(email))
-            necessitado.Email = email;
-
-        Console.Write($"Cidade ({necessitado.Cidade}): ");
-        string? cidade = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(cidade))
-            necessitado.Cidade = cidade;
-
-        Console.Write($"Bairro ({necessitado.Bairro}): ");
-        string? bairro = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(bairro))
-            necessitado.Bairro = bairro;
-
-        Console.Write($"Nacionalidade ({necessitado.Nacionalidade}): ");
-        string? nacionalidade = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(nacionalidade))
-            necessitado.Nacionalidade = nacionalidade;
-
-        Console.Write($"Telefone ({necessitado.Telefone}): ");
-        string? telefone = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(telefone))
-            necessitado.Telefone = telefone;
+        necessitado.Nome = LerCampo("Nome", necessitado.Nome);
+        necessitado.Email = LerCampo("Email", necessitado.Email);
+        necessitado.Cidade = LerCampo("Cidade", necessitado.Cidade);
+        necessitado.Bairro = LerCampo("Bairro", necessitado.Bairro);
+        necessitado.Nacionalidade = LerCampo("Nacionalidade", necessitado.Nacionalidade);
+        necessitado.Telefone = LerCampo("Telefone", necessitado.Telefone);
 
         Console.WriteLine("\nNível de urgência:");
         Console.WriteLine("0. Baixa");
         Console.WriteLine("1. Média");
         Console.WriteLine("2. Alta");
-        Console.Write($"Atual: {(int)necessitado.NivelUrgencia}. Deseja alterar? ");
+        Console.Write("Novo nível (ou Enter para manter): ");
 
-        string? alterarNivel = Console.ReadLine();
+        string? entrada = Console.ReadLine();
 
-        if (alterarNivel == "1")
+        if (!string.IsNullOrWhiteSpace(entrada))
         {
-            Console.Write("Novo nível: ");
-
-            if (int.TryParse(Console.ReadLine(), out int nivel) &&
-                Enum.IsDefined(typeof(NivelUrgencia), nivel))
+            if (int.TryParse(entrada, out int nivel) &&
+                nivel >= 0 && nivel <= 2)
             {
                 necessitado.NivelUrgencia = (NivelUrgencia)nivel;
             }
@@ -350,6 +307,18 @@ public class Necessitado
             Console.WriteLine("Necessitado atualizado com sucesso!");
         else
             Console.WriteLine("Não foi possível atualizar.");
+    }
+
+    public static string? LerCampo(string nomeCampo, string? valorAtual)
+    {
+        Console.Write(nomeCampo + " (atual: " + valorAtual + "): ");
+
+        string? novoValor = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(novoValor))
+            return valorAtual;
+
+        return novoValor;
     }
 
     public static void DeletarNecessitado()
@@ -370,10 +339,10 @@ public class Necessitado
             return;
         }
 
-        Console.Write($"Deseja excluir {necessitado.Nome}? (s/n): ");
-        string? confirmacao = Console.ReadLine();
+        Console.Write("Deseja excluir " + necessitado.Nome + "? (S/N): ");
+        string? resposta = Console.ReadLine();
 
-        if (confirmacao?.ToLower() != "s")
+        if (resposta?.ToUpper() != "S")
         {
             Console.WriteLine("Exclusão cancelada.");
             return;
@@ -381,54 +350,41 @@ public class Necessitado
 
         try
         {
-            using MySqlConnection conexao = new Conexao().Conectar();
-            conexao.Open();
+            using (MySqlConnection conexao = new Conexao().Conectar())
+            {
+                conexao.Open();
 
-            string sql = "DELETE FROM Necessitado WHERE Id = @Id";
+                string sql = "DELETE FROM Necessitado WHERE Id = @Id";
 
-            using MySqlCommand comando = new MySqlCommand(sql, conexao);
-            comando.Parameters.AddWithValue("@Id", id);
+                MySqlCommand comando = new MySqlCommand(sql, conexao);
+                comando.Parameters.AddWithValue("@Id", id);
 
-            int linhas = comando.ExecuteNonQuery();
+                int resultado = comando.ExecuteNonQuery();
 
-            if (linhas > 0)
-                Console.WriteLine("Necessitado excluído com sucesso!");
-            else
-                Console.WriteLine("Nenhum registro foi excluído.");
+                if (resultado > 0)
+                    Console.WriteLine("Necessitado excluído com sucesso!");
+                else
+                    Console.WriteLine("Nenhum registro foi excluído.");
+            }
         }
-        catch (MySqlException)
+        catch (MySqlException erro)
         {
-            Console.WriteLine(
-                "Não foi possível excluir. Verifique se existem itens vinculados a esse necessitado."
-            );
+            if (erro.Number == 1451)
+                Console.WriteLine("Não é possível excluir: existem itens vinculados.");
+            else
+                Console.WriteLine("Erro ao excluir: " + erro.Message);
         }
     }
 
     public void ExibirCadastro()
     {
-        Console.WriteLine("\n--- Cadastro do Necessitado ---");
-        Console.WriteLine($"ID: {Id}");
-        Console.WriteLine($"Nome: {Nome}");
-        Console.WriteLine($"Email: {Email}");
-        Console.WriteLine($"Cidade: {Cidade}");
-        Console.WriteLine($"Bairro: {Bairro}");
-        Console.WriteLine($"Nacionalidade: {Nacionalidade}");
-        Console.WriteLine($"Telefone: {Telefone}");
-        Console.WriteLine($"Nível de urgência: {NivelUrgencia}");
-
-        Console.WriteLine("\nItens necessários:");
-
-        if (ItensNecessarios.Count == 0)
-        {
-            Console.WriteLine("A lista de itens não foi carregada.");
-        }
-        else
-        {
-            foreach (Item item in ItensNecessarios)
-            {
-                Console.WriteLine($"Nome: {item.Nome}");
-                Console.WriteLine($"Quantidade: {item.Quantidade}");
-            }
-        }
+        Console.WriteLine("ID: " + Id);
+        Console.WriteLine("Nome: " + Nome);
+        Console.WriteLine("Email: " + Email);
+        Console.WriteLine("Cidade: " + Cidade);
+        Console.WriteLine("Bairro: " + Bairro);
+        Console.WriteLine("Nacionalidade: " + Nacionalidade);
+        Console.WriteLine("Telefone: " + Telefone);
+        Console.WriteLine("Nível de urgência: " + NivelUrgencia);
     }
 }
