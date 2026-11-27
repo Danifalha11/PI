@@ -40,7 +40,6 @@ O script cria automaticamente o banco `SistemaDoacoes` e as seguintes tabelas:
 
 - Doador
 - Necessitado
-- InstituicaoDoacao
 - Item
 
 ## 3. Configurar a conexão
@@ -51,12 +50,9 @@ Configure os dados de acesso ao seu servidor MySQL:
 
 
 private readonly string connectionString =
-    "Server=localhost;Database=SistemaDoacoes;Uid=root;Pwd=SUA_SENHA;";
+    "Server=localhost;Database=SistemaDoacoes;Uid=root;Pwd=Senac2026;";
 
 
-Substitua `SUA_SENHA` pela senha configurada no seu MySQL.
-
-**Importante:** não compartilhe senhas ou credenciais pessoais no repositório.
 
 ## 4. Restaurar as dependências
 
@@ -95,6 +91,5 @@ Em seguida, o menu principal será iniciado.
 
 ## Observações
 
-- O MySQL Server precisa estar em execução antes de iniciar o programa.
 - O banco de dados deve ser criado antes da execução.
 - Os IDs utilizados nos relacionamentos precisam existir nas respectivas tabelas.
